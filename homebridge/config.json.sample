@@ -1,0 +1,29 @@
+{
+  "bridge": {
+  "name": "Homebridge",
+  "username": "xx:xx:xx:xx:xx:xx",
+  "port": 33611,
+  "pin": "xxx-xx-xxx"
+  },
+  "description": "Raspberry Pi HomeKit!",
+  "accessories": [
+    {
+      "accessory": "CMD",
+      "name": "LED日付",
+      "on_cmd": "curl http://192.168.1.xxx:3000/api/v1/clock/mode -X PUT -d \"value=date\"",
+      "off_cmd": "curl http://192.168.1.xxx:3000/api/v1/clock/mode -X PUT -d \"value=date\""
+    },
+    {
+      "accessory": "CMD",
+      "name": "LED時計",
+      "on_cmd": "curl http://192.168.1.xxx:3000/api/v1/clock/mode -X PUT -d \"value=clock\"",
+      "off_cmd": "curl http://192.168.1.xxx:3000/api/v1/clock/mode -X PUT -d \"value=clock\""
+    },
+    {
+      "accessory": "CMD",
+      "name": "LED温度",
+      "on_cmd": "curl http://192.168.1.xxx:3000/api/v1/clock/mode -X PUT -d \"value=temp\"",
+      "off_cmd": "curl http://192.168.1.xxx:3000/api/v1/clock/mode -X PUT -d \"value=temp\""
+    }
+  ]
+}

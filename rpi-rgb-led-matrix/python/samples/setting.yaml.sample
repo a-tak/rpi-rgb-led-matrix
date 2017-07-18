@@ -1,0 +1,4 @@
+ambient-channel: 9999
+ambient-writekey: "xxxxxxxxxxxxxxxxxx"
+modefile-path: "/etc/pi-settings/"
+

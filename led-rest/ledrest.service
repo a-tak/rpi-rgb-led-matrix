@@ -1,0 +1,13 @@
+[Unit]
+Description=Server
+
+[Service]
+StandardOutput=syslog
+SyslogIdentifier=forever
+Type=forking
+Environment=PATH=/usr/local/bin/
+WorkingDirectory=/home/pi/raspi-led/led-rest/led-rest
+ExecStart=/usr/local/bin/forever start -w --pidFile /var/run/forever.pid ./bin/www
+ExecStop=/usr/local/bin/forever stop ./bin/www
+PIDFile=/var/run/forever.pid
+User=root
