@@ -104,6 +104,10 @@ cdef class RGBMatrixOptions:
         def __get__(self): return self.__options.rows
         def __set__(self, uint8_t value): self.__options.rows = value
 
+    property cols:
+        def __get__(self): return self.__options.cols
+        def __set__(self, uint8_t value): self.__options.cols = value
+
     property chain_length:
         def __get__(self): return self.__options.chain_length
         def __set__(self, uint8_t value): self.__options.chain_length = value
@@ -128,6 +132,14 @@ cdef class RGBMatrixOptions:
         def __get__(self): return self.__options.scan_mode
         def __set__(self, uint8_t value): self.__options.scan_mode = value
 
+    property multiplexing:
+        def __get__(self): return self.__options.multiplexing
+        def __set__(self, uint8_t value): self.__options.multiplexing = value
+
+    property row_address_type:
+        def __get__(self): return self.__options.row_address_type
+        def __set__(self, uint8_t value): self.__options.row_address_type = value
+
     property disable_hardware_pulsing:
         def __get__(self): return self.__options.disable_hardware_pulsing
         def __set__(self, value): self.__options.disable_hardware_pulsing = value
@@ -136,13 +148,21 @@ cdef class RGBMatrixOptions:
         def __get__(self): return self.__options.show_refresh_rate
         def __set__(self, value): self.__options.show_refresh_rate = value
 
-    property swap_green_blue:
-        def __get__(self): return self.__options.swap_green_blue
-        def __set__(self, value): self.__options.swap_green_blue = value
-
     property inverse_colors:
         def __get__(self): return self.__options.inverse_colors
         def __set__(self, value): self.__options.inverse_colors = value
+
+    property led_rgb_sequence:
+        def __get__(self): return self.__options.led_rgb_sequence
+        def __set__(self, value):
+            self.__py_encoded_led_rgb_sequence = value.encode('utf-8')
+            self.__options.led_rgb_sequence = self.__py_encoded_led_rgb_sequence
+
+    property pixel_mapper_config:
+        def __get__(self): return self.__options.pixel_mapper_config
+        def __set__(self, value):
+            self.__py_encoded_pixel_mapper_config = value.encode('utf-8')
+            self.__options.pixel_mapper_config = self.__py_encoded_pixel_mapper_config
 
     # RuntimeOptions properties
 

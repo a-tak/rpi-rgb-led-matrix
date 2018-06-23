@@ -5,28 +5,22 @@ A library to control commonly available 32x32 or 16x32 RGB LED panels with the
 Raspberry Pi. Can support PWM up to 11Bit per channel, providing true 24bpp
 color with CIE1931 profile.
 
-Supports 3 chains with many 32x32-panels each.
-On a Raspberry Pi 2, you can easily chain 12 panels in that chain (so 36 panels total),
-but you can stretch that to up to 96-ish panels (32 chain length) and still reach
-around 100Hz refresh rate with full 24Bit color (theoretical - never tested this;
-there might likely be timing problems with the panels that will creep up then).
-With fewer colors you can control even more, faster.
+Supports 3 chains with many panels each.
+On a Raspberry Pi 2 or 3, you can easily chain 12 panels in that chain
+(so 36 panels total), but you can theoretically stretch that to up
+to 96-ish panels (32 chain length) and still reach
+around 100Hz refresh rate with full 24Bit color (theoretical - never tested
+this; there might likely be timing problems with the panels that will creep
+up then).
+
+With fewer colors or so-called 'outdoor panels' you can control even more,
+faster.
 
 The LED-matrix library is (c) Henner Zeller <h.zeller@acm.org>, licensed with
 [GNU General Public License Version 2.0](http://www.gnu.org/licenses/gpl-2.0.txt)
 (which means, if you use it in a product somewhere, you need to make the
 source and all your modifications available to the receiver of such product so
 that they have the freedom to adapt and improve).
-
-Note to Old Time Users: Several changes in defines and flags
-------------------------------------------------------------
-If you have checked out this library before, you might find that some
-files are re-organized in different directories (e.g. there is now a separation
-for library examples and utilities), and that the flags to binaries are now
-long and unified. Also, for the most part, you don't need to tweak paramters
-in `lib/Makefile` anymore as they are now exposed via command line flags.
-
-Choosing a different pinout, e.g. for the Adafruit HAT is also a little different.
 
 Overview
 --------
@@ -39,7 +33,7 @@ to control these. You can use this as a library in your own projects or just
 use the demo binary provided here which provides some useful examples.
 
 Check out [utils/ directory for some ready-made tools](./utils) to get started
-using the library, or the [example-api-use/](./example-api-use) directory if
+using the library, or the [examples-api-use/](./examples-api-use) directory if
 you want to get started programming your own utils.
 
 All Raspberry Pi versions supported
@@ -52,7 +46,7 @@ The 26 pin models can drive one chain of RGB panels, the 40 pin models
 
 The Raspberry Pi 2 and 3 are faster than older models (and the Pi Zero) and
 sometimes the cabeling can't keep up with the speed; check out
-this [troubleshooting section](#help-some-pixels-are-not-displayed-properly)
+this [troubleshooting section](#troubleshooting)
 what to do.
 
 The [Raspbian Lite][raspbian-lite] distribution is recommended.
@@ -62,45 +56,65 @@ Types of Displays
 There are various types of displays that come all with the same Hub75 connector.
 They vary in the way the multiplexing is happening.
 
-Type  | Scan Multiplexing | Program Option               | Remark
+Type w*h | Scan Multiplexing | Program commandline flags    | Remark
 -----:|:-----------------:|:-----------------------------|-------
-64x64 |  1:32             | --led-rows=64 --led-chain=2  | For displays with E line.
+64x64 |  1:32             | --led-rows=64 --led-cols=64  | For displays with A,B,C,D,E line.
+64x64 |  1:32             | --led-rows=64 --led-cols=64 --led-row-addr-type=1 | For displays with A,B lines.
+64x32 |  1:16             | --led-rows=32 --led-cols=64  |
+64x32 |  1:8              | --led-rows=32 --led-cols=64 --led-multiplexing=1 | few mux choices
 32x32 |  1:16             | --led-rows=32                |
-32x64 |  1:16             | --led-rows=32 --led-chain=2  | internally two chained 32x32
-16x32 |  1:8              | --led-rows=16                |
-?     |  1:4              | --led-rows=8                 | (not tested myself)
+32x32 |  1:8              | --led-rows=32 --led-multiplexing=1 | few mux choices
+32x16 |  1:8              | --led-rows=16                |
+32x16 |  1:4              | --led-rows=16 --led-multiplexing=1 | few mux choices
+32x16 |  1:4              | --led-rows=16 --led-row-addr-type=2 --led-multiplexing=4 | For direct A..D address panels.
+...   |
 
 These can be chained by connecting the output of one panel to the input of
 the next panel. You can chain quite a few together.
 
-The 64x64 matrixes typically have 5 address lines (A, B, C, D, E). There are
-also 64x64 panels out there that only seem to have 1:4 multiplexing (there
-is A and B), but I have not had these in my lab yet to test.
+The 64x64 matrixes typically come in two kinds: with 5 address
+lines (A, B, C, D, E), or (A, B); the latter needs a `--led-row-addr-type=1`
+parameter. So-called 'outdoor panels' are typically brighter and allow for
+faster refresh-rate for the same size, but do some multiplexing internally
+of which there are a few types out there; they can be chosen with
+the `--led-multiplexing` parameter.
+
+Generally, the higher scan-rate (e.g. 1:8), a.k.a. outdoor panels generally
+allow faster refresh rate, but you might need to figure out the multiplexing
+mapping if one of the three provided does not work.
+
+Some 32x16 outdoor matrixes with 1:4 scan (e.g. [Qiangli Q10(1/4) or X10(1/4)](http://qiangliled.com/products-63.html))
+have 4 address line (A, B, C, D). For such matrices is necessary to
+use `--led-row-addr-type=2` parameter. Also the matrix Qiangli Q10(1/4)
+have "Z"-stripe pixel mapping and in this case, you'd use two parameters
+at the same time `--led-row-addr-type=2 --led-multiplexing=4`.
 
 Let's do it
 ------------
 This documentation is split into parts that help you through the process
 
-  * <a href="wiring.md"><img src="img/wire-up-icon.png"></a>
-    [Wire up the matrix to your Pi](./wiring.md). This document describes what
-    goes where. You might also be interested in [breakout boards](./adapter)
-    for that. If you have an [Adafruit HAT], you can choose that with
+  1. <a href="wiring.md"><img src="img/wire-up-icon.png"></a>
+    [**Wire up the matrix to your Pi**](./wiring.md). This document describes
+    what goes where. You might also be interested
+    in [breakout boards](./adapter) for that.
+    If you have an [Adafruit HAT], you can choose that with
     a command line option [described below](#if-you-have-an-adafruit-hat)
-  * Run a demo. You find that in the
+  2. Run a demo. You find that in the
      [examples-api-use/](./examples-api-use#running-some-demos) directory:
 ```
 make -C examples-api-use
 sudo examples-api-use/demo -D0
 ```
-  * Use the utilities. The [utils](./utils) directory has some ready-made
-    useful utilities to show image or text. [Go there](./utils) to see how to
+  3. Use the utilities. The [utils](./utils) directory has some ready-made
+    useful utilities to show content. [Go there](./utils) to see how to
     compile and run these.
+  4. Write your own programs using the Matrix in C++ or Python.
 
 ### Utilities
 
-The [utils directory](./utils) is meant for ready utilities to show images,
-animated gifs, text and video. Read the [README](./utils/README.md) there
-for instructions how to compile.
+The [utils directory](./utils) is meant for ready utilities to show images or
+animated gifs or videos. Read the [README](./utils/README.md) there for
+instructions how to compile.
 
 There are external projects that use this library and provide higher level
 network protocols, such as the
@@ -118,11 +132,12 @@ The library comes as an API that you can use for your own utilities and use-case
     directory.
   * If you prefer to program in C, there is also a
     [C API](./include/led-matrix-c.h).
-  * In the [python](./python) subdirectory, you find a Python API including a
-    couple of [examples](./python/samples) to get started.
+  * In the [python](./bindings/python) subdirectory, you find a Python API including a
+    couple of [examples](./bindings/python/samples) to get started.
   * There are a couple of external bindings, such as
       * [Nodejs binding] by Maxime Journaux.
       * [Go binding] by Máximo Cuadros
+      * [Rust binding] by Vincent Pasquier
 
 ### Changing parameters via command-line flags
 
@@ -144,15 +159,16 @@ choose these here:
 
 This can have values such as
   - `--led-gpio-mapping=regular` The standard mapping of this library, described in the [wiring](./wiring.md) page.
-  - `--led-gpio-mapping=adafruit-hat` standard Adafruit HAT or
+  - `--led-gpio-mapping=adafruit-hat` The Adafruit HAT, that uses this library or
   - `--led-gpio-mapping=adafruit-hat-pwm` Adafruit HAT with the anti-flicker hardware mod [described below](#improving-flicker).
 
 The next most important flags describe the type and number of displays connected
 
 ```
---led-rows=<rows>         : Panel rows. 8, 16, 32 or 64. (Default: 32).
---led-chain=<chained>     : Number of daisy-chained panels. (Default: 1).
---led-parallel=<parallel> : For A/B+ models or RPi2,3b: parallel chains. range=1..3 (Default: 1).
+--led-rows=<rows>        : Panel rows. Typically 8, 16, 32 or 64. (Default: 32).
+--led-cols=<cols>        : Panel columns. Typically 32 or 64. (Default: 32).
+--led-chain=<chained>    : Number of daisy-chained panels. (Default: 1).
+--led-parallel=<parallel>: For A/B+ models or RPi2,3b: parallel chains. range=1..3 (Default: 1).
 ```
 
 These are the most important ones: here you choose how many panels you have
@@ -166,6 +182,50 @@ many there are.
 This illustrates what each of these parameters mean:
 
 <a href="wiring.md#chaining-parallel-chains-and-coordinate-system"><img src="img/coordinates.png"></a>
+
+##### Multiplexing
+If you have some 'outdoor' panels or panels with different multiplexing,
+the following will be useful:
+
+```
+--led-multiplexing=<0..4> : Multiplexing type: 0=direct; 1=strip; 2=checker; 3=spiral; 4=Z-strip (Default: 0)
+```
+The outdoor panels have different multiplexing which allows them to be faster
+and brighter, but by default their output looks jumbled up.
+They require some pixel-mapping of which there are a few
+types you can try and hopefully one of them works for your panel; The default=0
+is no mapping ('standard' panels), while 1, 2, 3 or 4 are different mappings
+to try with. If your panel has a different mapping, please send a pull request.
+
+Note that you have to set the `--led-rows` and `--led-cols` to the rows and
+columns that are physically on each chained panel so that the multiplexing
+option can work properly. For instance a `32x16` panel with `1:4` multiplexing
+would be controlled with `--led-rows=16 --led-cols=32 --led-multiplexing=1` (or
+whatever multiplexing type your panel is, so it can also be `--led-multiplexing=2`, or 3).
+
+For `64x32` panels with `1:8` multiplexing, this would typically be
+`--led-rows=32 --led-cols=64 --led-multiplexing=1`;
+however, there are some panels that internally behave like
+two chained panels, so then you'd use
+`--led-rows=32 --led-cols=32 --led-chain=2 --led-multiplexing=1`;
+
+```
+--led-pixel-mapper  : Semicolon-separated list of pixel-mappers.
+```
+
+Mapping the logical layout of your boards to your physical arrangement. See
+more in [Remapping coordinates](./examples-api-use#remapping-coordinates).
+
+```
+--led-row-addr-type=<0..2>: 0 = default; 1=AB-addressed panels; 2=direct row select (Default: 0).
+```
+This option is useful for certain 64x64 or 32x16 panels. For 64x64 panels,
+that only have an `A` and `B` address line, you`d use `--led-row-addr-type=1`.
+This is only tested with one panel so far, so if it doesn't work for you,
+please send a pull request.
+
+For 32x16 outdoor panels, that have have 4 address line (A, B, C, D), it is
+necessary to use `--led-row-addr-type=2`.
 
 ```
 --led-brightness=<percent>: Brightness in percent (Default: 100).
@@ -204,15 +264,18 @@ flicker - some are fine with 100Hz refresh, others need 250Hz.
 So if you are curious, this gives you the number (shown on the terminal).
 
 The refresh rate depends on a lot of factors, from `--led-rows` and `--led-chain`
-to `--led-pwm-bits` and `--led-pwm-lsb-nanoseconds`. If you are tweaking these
-parameters, showing the refresh rate can be a useful tool.
+to `--led-pwm-bits`, `--led-pwm-lsb-nanoseconds` and `--led-pwm-dither-bits`.
+If you are tweaking these parameters, showing the refresh rate can be a
+useful tool.
 
 ```
 --led-scan-mode=<0..1>    : 0 = progressive; 1 = interlaced (Default: 0).
 ```
 
 This switches from progressive scan and interlaced scan. The latter might
-look be a little nicer when you have a very low refresh rate.
+look be a little nicer when you have a very low refresh rate, but typically
+it is more annoying because of the comb-effect (remember 80ies TV ?).
+
 
 ```
 --led-pwm-lsb-nanoseconds : PWM Nanoseconds for LSB (Default: 130)
@@ -242,6 +305,23 @@ Ghosting with low --led-pwm-lsb-nanoseconds  | No ghosting after tweaking
 
 If you tweak this value, watch the framerate (`--led-show-refresh`) while playing
 with this number.
+
+```
+--led-pwm-dither-bits   : Time dithering of lower bits (Default: 0)
+```
+
+The lower bits can be time dithered, i.e. their brightness contribution is
+achieved by only showing them some frames (this is possible,
+because the PWM is implemented as binary code modulation).
+This will allow higher refresh rate (or same refresh rate with increased
+`--led-pwm-lsb-nanoseconds`).
+The disadvantage could be slightly lower brightness, in particular for longer
+chains, and higher CPU use.
+CPU use is not of concern for Rasbperry Pi 2 or 3 (as we run on a dedicated
+core anyway) but proably for Raspberry Pi 1 or Pi Zero.
+Default: no dithering; if you have a Pi 3 and struggle with low frame-rate due
+to high multiplexing panels (1:16 or 1:32) or long chains, it might be
+worthwhile to try.
 
 ```
 --led-slowdown-gpio=<0..2>: Slowdown GPIO. Needed for faster Pis and/or slower panels (Default: 1).
@@ -286,12 +366,12 @@ You might want this if started from an init script at boot-time.
 
 ```
 --led-inverse             : Switch if your matrix has inverse colors on.
---led-swap-green-blue     : Switch if your matrix has green/blue swapped on.
+--led-rgb-sequence        : Switch if your matrix has led colors swapped (Default: "RGB")
 ```
 
 These are if you have a different kind of LED panel in which the logic of the
-color bits is reversed (`--led-inverse`) or where the green and blue colors
-are swapped (`--led-swap-green-blue`). You know it when you see it.
+color bits is reversed (`--led-inverse`) or where the Red, Green and Blue LEDs
+are mixed up (`--led-rgb-sequence`). You know it when you see it.
 
 Troubleshooting
 ---------------
@@ -305,10 +385,53 @@ In general, run a minimal configuration on your Pi.
     Using a Pi with a GUI is a frustratingly slow use of an otherwise
     perfectly good embedded device.)
 
-  * Switch off on-board sound (external USB sound adapters work).
+  * Switch off on-board sound (`dtparam=audio=off` in `/boot/config.txt`).
+    External USB sound adapters work, and are much better quality anyway,
+    so that is recommended if you happen to need sound. The on-board sound
+    uses a timing circuit that the RGB-Matrix needs (it seems in some
+    distributions, such as arch-linux, this is not enough and you need
+    to explicitly blacklist the snd_bcm2835 module).
 
-Everything seems to work well with a **[Raspbian Lite][raspbian-lite]**
-distribution.
+  * Don't run anything that messes in parallel with the GPIO pins, e.g.
+    PiGPIO library/daemon or devices that use the i2c or 1-wire interface if
+    they are on the same pins you need for the panel.
+
+  * I have also seen reports that on some Pis, the one-wire protocol is
+    enabled (w1-gpio). This will also not work (disable by removing
+    `dtoverlay=w1-gpio` in `/boot/config.txt`; or using `raspi-config`,
+    Interface Options -> 1-Wire)
+
+  * If you see some regular flickering, make sure that there is no other
+    process running on the system that could cause that. For instance, it is
+    known that merely running `top` creates a faint flicker every second it
+    updates. Or a regular ntp run can also cause flicker once a minute
+    (switch off with `sudo timedatectl set-ntp false`). Maybe instead you
+    might want to run ntp at system start-up but then not regularly updating.
+    There might be other things running regularly you don't need;
+    consider a `sudo systemctl stop cron` for instance.
+
+  * There are probably other processes that are running that you don't need
+    and remove them; I usually remove right away stuff I really don't need e.g.
+    ```
+    sudo apt-get remove bluez bluez-firmware pi-bluetooth triggerhappy pigpio
+    ```
+    Take a close look at your systemd (`systemctl`) and see if there are other
+    things running you don't need. If you have seen packages in standard
+    Raspbians that interfere with the matrix code, let me know to include it
+    here.
+    In general: This is why starting with a minimal installation is a good
+    idea: there is simply less cruft that you have to disable.
+
+  * It seems that more recent version of Raspbian Lite result in some faint
+    brightness fluctuations of the displays and it is not quite clear why (see
+    issue [#483](https://github.com/hzeller/rpi-rgb-led-matrix/issues/483)). If you are a Kernel person and can help figuring out what is
+    happening that would be very appreciated. Also, you might know a minimal
+    Linux distribution that is more suited for near realtime applications ?
+
+The default install of **[Raspbian Lite][raspbian-lite]** seems to be a good
+starting point, as it has a reasonable minimal configuration to begin with.
+It recently has the issue of more interference with the matrix, so if you can
+recommend a more lightweight, realtime focused distribution, let me know.
 
 ### Bad interaction with Sound
 If sound is enabled on your Pi, this will not work together with the LED matrix,
@@ -331,6 +454,15 @@ sudo update-initramfs -u
 ```
 
 Reboot and confirm that the module is not loaded.
+
+### I have followed the Adafruit Tutorial and it doesn't work
+
+Well, if you use this library, please read the documentation provided _here_,
+not on some other website. Most important for you to get started
+is the [wiring guide](./wiring.md).
+
+Adafruit has some outdated tutorial based on a super-ancient version of this
+library. It won't work.
 
 ### I have a Pi1 Revision1 and top part of Panel doesn't show green
 
@@ -468,7 +600,8 @@ reserve one core just for the refresh of the display:
 isolcpus=3
 ```
 
-.. at the end of the line of `/boot/cmdline.txt`. This will use the last core
+.. at the end of the line of `/boot/cmdline.txt` (needs to be in the same as
+the other arguments, no newline). This will use the last core
 only to refresh the display then, but it also means, that no other process can
 utilize it then. Still, I'd typically recommend it.
 
@@ -487,6 +620,17 @@ dropped due to its slow speed..
 There is an upper limit in how fast the GPIO pins can be controlled, which
 limits the frame-rate. Raspberry Pi 2's and newer are generally faster.
 
+Even with everything in place, you might see faint brightness fluctuations
+in particular if there is something going on on the network or in a terminal
+on the Pi; this could probably be mitigated with some more real-time
+kernel for the Pi; maybe there are also hardware limitations (memory bus
+contention?). Anyway, if you have a realtime kernel configuration that you
+have optimized for this application, let me know.
+
+To address the brightness fluctuations, you might experiment with the
+`FIXED_FRAME_MICROSECONDS` compile time option in [lib/Makefile](lib/Makefile)
+that has instructions how to set it up.
+
 Fun
 ---
 I am always happy to see users successfully using the software for wonderful
@@ -503,3 +647,4 @@ things, like this installation by Dirk in Scharbeutz, Germany:
 [Adafruit HAT]: https://www.adafruit.com/products/2345
 [Nodejs binding]: https://github.com/zeitungen/node-rpi-rgb-led-matrix
 [Go binding]: https://github.com/mcuadros/go-rpi-rgb-led-matrix
+[Rust binding]: https://crates.io/crates/rpi-led-matrix
