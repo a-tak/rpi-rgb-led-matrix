@@ -2,6 +2,10 @@
 ====
 時計アプリケーションのPython部分
 
+## 必要モジュール
+sudo pip3 install pyyaml
+
+
 ## 実行方法
 sudo ./clock.py --led-rows=16 --led-brightness=40
 
