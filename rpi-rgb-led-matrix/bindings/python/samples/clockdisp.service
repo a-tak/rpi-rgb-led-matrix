@@ -4,8 +4,8 @@ After=syslog.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/pi/raspi-led/rpi-rgb-led-matrix/python/samples
-ExecStart=/home/pi/raspi-led/rpi-rgb-led-matrix/python/samples/clock.py --led-rows=16 --led-brightness=40
+WorkingDirectory=/home/pi/rpi-rgb-led-matrix/rpi-rgb-led-matrix/bindings/python/samples
+ExecStart=/home/pi/rpi-rgb-led-matrix/rpi-rgb-led-matrix/bindings/python/samples/clock.py --led-rows=16 --led-brightness=40
 TimeoutStopSec=5
 StandardOutput=null
 

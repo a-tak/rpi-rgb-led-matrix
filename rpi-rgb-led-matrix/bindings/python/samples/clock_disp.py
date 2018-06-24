@@ -28,7 +28,7 @@ class ClockDisp(DispAbc):
         logger.debug("ClockDisp Start")
         offscreen_canvas = self.matrix.matrix.CreateFrameCanvas()
         font = graphics.Font()
-        font.LoadFont("../../fonts/6x13.bdf")
+        font.LoadFont("../../../fonts/6x13.bdf")
         textColor = graphics.Color(100, 100, 255)
 
         while not self.accepted_stop:

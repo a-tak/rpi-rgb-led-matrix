@@ -34,7 +34,7 @@ class TemperatureDisp(DispAbc):
 
         offscreen_canvas = self.matrix.matrix.CreateFrameCanvas()
         font = graphics.Font()
-        font.LoadFont("../../fonts/5x7.bdf")
+        font.LoadFont("../../../fonts/5x7.bdf")
 
         while not self.accepted_stop:
             value = sensor.get()

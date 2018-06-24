@@ -26,10 +26,10 @@ class DateDisp(DispAbc):
         logger.debug("DateDisp Start")
         offscreen_canvas = self.matrix.matrix.CreateFrameCanvas()
         font1 = graphics.Font()
-        font1.LoadFont("../../fonts/5x7.bdf")
+        font1.LoadFont("../../../fonts/5x7.bdf")
         textColor1 = graphics.Color(100, 200, 100)
         font2 = graphics.Font()
-        font2.LoadFont("../../fonts/6x10.bdf")
+        font2.LoadFont("../../../fonts/6x10.bdf")
         textColor2 = graphics.Color(50, 50, 200)
 
         while not self.accepted_stop:
