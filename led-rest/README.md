@@ -49,6 +49,12 @@ config:
 
 Python側の設定読み込みと合わせる
 
+## 起動テスト
+
+```bash
+sudo npm start
+```
+
 ## API呼出サンプル
 
 ```bash
