@@ -7,7 +7,7 @@ hzeller/rpi-rgb-led-matrix を使わせてもらった。
 
 後で整理するが以下に新しくコードを追加している。
 
-rpi-rgb-led-matrix/rpi-rgb-led-matrix/python/samples/
+rpi-rgb-led-matrix/rpi-rgb-led-matrix/bindings/python/samples/
 
 Siriで操作できるようにREST APIをNode.jsで作成
 
